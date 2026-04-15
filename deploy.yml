@@ -1,0 +1,32 @@
+---
+- name: Deploy RunCalc Pro
+  hosts: prod
+  become: yes
+
+  vars_files:
+    - vault_vars.yml
+
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull Docker image
+      shell: docker pull {{ image_tag }}
+
+    - name: Stop existing container
+      shell: docker stop runcalc || true
+
+    - name: Remove existing container
+      shell: docker rm runcalc || true
+
+    - name: Run new container
+      shell: docker run -d -p 80:80 --name runcalc {{ image_tag }}
