@@ -7,6 +7,13 @@
     - vault_vars.yml
 
   tasks:
+    - name: Wait for yum lock to be released
+      shell: |
+        while sudo fuser /var/run/yum.pid >/dev/null 2>&1; do
+          echo "Waiting for yum lock..."
+          sleep 5
+        done
+
     - name: Install Docker
       yum:
         name: docker
