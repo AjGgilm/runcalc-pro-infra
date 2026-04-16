@@ -7,7 +7,7 @@
     - vault_vars.yml
 
   tasks:
-          - name: Install Docker
+    - name: Install Docker
       yum:
         name: docker
         state: present
@@ -18,7 +18,7 @@
         state: started
         enabled: yes
 
-          - name: Add ec2-user to docker group
+    - name: Add ec2-user to docker group
       user:
         name: ec2-user
         groups: docker
@@ -33,5 +33,5 @@
     - name: Remove existing container
       shell: docker rm runcalc || true
 
-       - name: Run new container
+    - name: Run new container
       shell: docker run -d -p 80:3000 --name runcalc {{ image_tag }}
