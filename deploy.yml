@@ -7,17 +7,22 @@
     - vault_vars.yml
 
   tasks:
-    - name: Install Docker
-      apt:
-        name: docker.io
+          - name: Install Docker
+      yum:
+        name: docker
         state: present
-        update_cache: yes
 
     - name: Start Docker service
       service:
         name: docker
         state: started
         enabled: yes
+
+          - name: Add ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: yes
 
     - name: Pull Docker image
       shell: docker pull {{ image_tag }}
@@ -28,5 +33,5 @@
     - name: Remove existing container
       shell: docker rm runcalc || true
 
-    - name: Run new container
-      shell: docker run -d -p 80:80 --name runcalc {{ image_tag }}
+       - name: Run new container
+      shell: docker run -d -p 80:3000 --name runcalc {{ image_tag }}
