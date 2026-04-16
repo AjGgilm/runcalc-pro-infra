@@ -26,7 +26,7 @@ pipeline {
                         INSTANCE_ID=$(aws ec2 run-instances \
                             --image-id ami-0c02fb55956c7d316 \
                             --instance-type t2.micro \
-                            --key-name jenkins-server \
+                            --key-name prod-key \
                             --security-group-ids sg-0d5883df1c11bd157 \
                             --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=runcalc-prod}]" \
                             --query "Instances[0].InstanceId" \
@@ -55,11 +55,13 @@ pipeline {
                     sh '''
                         PROD_IP=$(cat prod_ip.txt)
                         echo "[prod]" > inventory.ini
-                        echo "prod_server ansible_host=$PROD_IP ansible_user=ubuntu ansible_ssh_private_key_file=/var/lib/jenkins/.ssh/prod_key.pem" >> inventory.ini
-
+echo "prod_server ansible_host=$PROD_IP ansible_user=ec2-user ansible_ssh_private_key_file=/var/lib/jenkins/.ssh/prod_key.pem" >> inventory.ini
                         echo "$VAULT_PASS" > /tmp/vault_pass.txt
 
-                        sleep 60
+                        until ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/prod_key.pem ec2-user@$PROD_IP 'echo ready'; do
+  echo "Waiting for SSH..."
+  sleep 5
+done
 
                         ansible-playbook -i inventory.ini deploy.yml \
                             --vault-password-file /tmp/vault_pass.txt \
